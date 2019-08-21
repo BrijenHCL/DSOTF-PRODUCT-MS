@@ -19,7 +19,7 @@ import io.sphere.sdk.queries.PagedQueryResult;
 
 public interface ProductService {
 
-	public CompletableFuture<Product> getProductByKey(String key) throws ProductException;
+	public Product getProductByKey(String key) throws ProductException, InterruptedException, ExecutionException;
 
 	public CompletableFuture<PagedQueryResult<ProductProjection>> getProducts() throws ProductException;
 

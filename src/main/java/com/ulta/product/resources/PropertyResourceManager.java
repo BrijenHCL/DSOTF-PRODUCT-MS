@@ -35,5 +35,4 @@ public class PropertyResourceManager {
 	public String getPropertyValue(String key) {
 		return this.prop.getProperty(key);
 	}
-
 }

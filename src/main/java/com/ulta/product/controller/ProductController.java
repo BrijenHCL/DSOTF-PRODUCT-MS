@@ -13,6 +13,7 @@ import static com.ulta.product.constant.ProductConstants.VIEW_PRODUCT_BYCATEGORY
 import static com.ulta.product.constant.ProductConstants.VIEW_PRODUCT_BYPRODUCTKEY_URI;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,19 +47,19 @@ public class ProductController {
 	 * @param productKey
 	 * @return
 	 * @throws ProductException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
 	 */
 	@RequestMapping(value = VIEW_PRODUCT_BYPRODUCTKEY_URI, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Product> getProductByKey(@PathVariable("productKey") String productKey)
-			throws ProductException {
+			throws ProductException, InterruptedException, ExecutionException {
 
-		Product product = null;
 		log.info("getProductByKey method start");
-		CompletableFuture<Product> products = ProductService.getProductByKey(productKey);
+		Product product = ProductService.getProductByKey(productKey);
 
 		try {
 
-			if (null != products.get()) {
-				product = products.get();
+			if (null != product) {
 				log.info("get the product details successfully.");
 			} else {
 				log.info("getting product details as null");

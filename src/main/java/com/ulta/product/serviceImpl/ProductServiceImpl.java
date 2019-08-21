@@ -7,7 +7,6 @@
 package com.ulta.product.serviceImpl;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
@@ -15,9 +14,12 @@ import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.ulta.product.exception.ProductException;
+import com.ulta.product.resources.HystrixCommandPropertyResource;
 import com.ulta.product.service.ProductService;
 
 import io.sphere.sdk.categories.Category;
@@ -35,6 +37,10 @@ public class ProductServiceImpl implements ProductService {
 	static Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
 	@Autowired
 	SphereClient client;
+	@Autowired
+	HystrixCommandPropertyResource hystrixCommandProp;
+	@Autowired
+	Environment env;
 
 	/*
 	 * (non-Javadoc)
@@ -42,7 +48,9 @@ public class ProductServiceImpl implements ProductService {
 	 * @see com.ulta.product.service.ProductService#getProductByKey(String key)
 	 */
 	@Override
-	public CompletableFuture<Product> getProductByKey(String key) throws ProductException {
+	@HystrixCommand(fallbackMethod = "getProductByKeyFallback", ignoreExceptions = {
+			ProductException.class }, commandKey = "PRODUCTBYKEYCommand", threadPoolKey = "PRODUCTBYKEYThreadPool")
+	public Product getProductByKey(String key) throws ProductException, InterruptedException, ExecutionException {
 		log.info("getProductByKey method start");
 		final ProductByKeyGet request = ProductByKeyGet.of(key);
 		CompletionStage<Product> pro = client.execute(request);
@@ -52,9 +60,8 @@ public class ProductServiceImpl implements ProductService {
 		} else {
 			throw new ProductException("Product Data is empty");
 		}
-
 		log.info("getProductByKey method end");
-		return returnProduct;
+		return returnProduct.get();
 	}
 
 	/*
@@ -94,20 +101,19 @@ public class ProductServiceImpl implements ProductService {
 
 		CompletionStage<Category> category = client.execute(CategoryByKeyGet.of(categorykey));
 		CompletableFuture<PagedQueryResult<ProductProjection>> returnProductwithcategory = null;
-		ProductProjectionQuery exists=null;
+		ProductProjectionQuery exists = null;
 		if (null != category.toCompletableFuture()) {
 			Category returnCat = category.toCompletableFuture().get();
 			exists = ProductProjectionQuery.ofCurrent()
 					.withPredicates(m -> m.categories().isIn(Arrays.asList(returnCat)));
 		}
-			CompletionStage<PagedQueryResult<ProductProjection>> productsWithCategory = client.execute(exists);
+		CompletionStage<PagedQueryResult<ProductProjection>> productsWithCategory = client.execute(exists);
 
-			if (null != productsWithCategory) {
-				returnProductwithcategory = productsWithCategory.toCompletableFuture();
-			} else {
-				throw new ProductException("Product With Category is empty");
-			}
-		
+		if (null != productsWithCategory) {
+			returnProductwithcategory = productsWithCategory.toCompletableFuture();
+		} else {
+			throw new ProductException("Product With Category is empty");
+		}
 
 		log.info("findProductsWithCategory method end");
 		return returnProductwithcategory;
@@ -135,11 +141,30 @@ public class ProductServiceImpl implements ProductService {
 
 	/**
 	 * 
+	 * @param key
+	 * @return
+	 * @throws ProductException
+	 */
+	public Product getProductByKeyFallback(String key) throws ProductException {
+		log.error("Critical -  CommerceTool UnAvailability error");
+		throw new ProductException(key);
+
+	}
+
+	/**
+	 * 
 	 * @param client
 	 */
 
 	public void setClient(SphereClient client) {
 		this.client = client;
+	}
+
+	/**
+	 * @param hystrixCommandProp the hystrixCommandProp to set
+	 */
+	public void setHystrixCommandProp(HystrixCommandPropertyResource hystrixCommandProp) {
+		this.hystrixCommandProp = hystrixCommandProp;
 	}
 
 }

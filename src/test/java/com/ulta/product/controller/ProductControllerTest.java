@@ -48,41 +48,38 @@ public class ProductControllerTest {
 	}
 
 	@Test(expected = ProductException.class)
-	public void testgetProductBykeyWhenProductGetisNull() {
+	public void testgetProductBykeyWhenProductGetisNull()
+			throws ProductException, InterruptedException, ExecutionException {
 
-		CompletableFuture<Product> products = new CompletableFuture<Product>();
+		// CompletableFuture<Product> products = new CompletableFuture<Product>();
 		Product value = null;
-		products.complete(value);
+
 		String key = "Liquid-exception";
-		when(productService.getProductByKey(key)).thenReturn(products);
+		when(productService.getProductByKey(key)).thenReturn(value);
 		productController.getProductByKey(key);
 	}
 
 	@Test()
-	public void testgetProductBykey() {
+	public void testgetProductBykey() throws ProductException, InterruptedException, ExecutionException {
 
 		CompletableFuture<Product> products = new CompletableFuture<Product>();
 		Product value = Mockito.mock(Product.class);
-		products.complete(value);
 		String key = "Liquid";
-		when(productService.getProductByKey(key)).thenReturn(products);
+		when(productService.getProductByKey(key)).thenReturn(value);
 		ResponseEntity<Product> result = productController.getProductByKey(key);
 		assertEquals(HttpStatus.OK, result.getStatusCode());
 	}
-	
-	@SuppressWarnings("unchecked")
-	@Test(expected=ProductException.class)
-	public void testgetProductBykeyForExceptionCase1() {
 
-		CompletableFuture<Product> products = new CompletableFuture<Product>();
-		Product value = Mockito.mock(Product.class);
-		products.complete(value);
+	@SuppressWarnings("unchecked")
+	@Test(expected = ProductException.class)
+	public void testgetProductBykeyForExceptionCase1()
+			throws ProductException, InterruptedException, ExecutionException {
+
 		String key = "Liquid";
 		when(productService.getProductByKey(key)).thenThrow(new ProductException("Failure"));
 		productController.getProductByKey(key);
 	}
 
-	
 	@Test()
 	public void testgetProducts() {
 
@@ -96,8 +93,8 @@ public class ProductControllerTest {
 		ResponseEntity<CompletableFuture<PagedQueryResult<ProductProjection>>> result = productController.getProducts();
 		assertEquals(HttpStatus.OK, result.getStatusCode());
 	}
-	
-	@Test(expected=ProductException.class)
+
+	@Test(expected = ProductException.class)
 	public void testgetProductsExceptionCase() {
 
 		CompletableFuture<PagedQueryResult<ProductProjection>> products = new CompletableFuture<PagedQueryResult<ProductProjection>>();
@@ -121,8 +118,8 @@ public class ProductControllerTest {
 				.getProductByCategory(categorykey);
 		assertEquals(HttpStatus.OK, result.getStatusCode());
 	}
-	
-	@Test(expected=ProductException.class)
+
+	@Test(expected = ProductException.class)
 	public void testgetProductByCategoryExceptionCase() throws InterruptedException, ExecutionException {
 
 		CompletableFuture<PagedQueryResult<ProductProjection>> products = new CompletableFuture<PagedQueryResult<ProductProjection>>();
@@ -133,7 +130,7 @@ public class ProductControllerTest {
 		products.complete(null);
 		String categorykey = "Makeup";
 		when(productService.findProductsWithCategory(categorykey)).thenReturn(products);
-		 productController.getProductByCategory(categorykey);
+		productController.getProductByCategory(categorykey);
 	}
 
 	@Test()

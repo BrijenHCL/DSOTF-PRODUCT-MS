@@ -28,35 +28,35 @@ public class HystrixCommandPropertyResource {
 					if (key.contains(COMMAND_KEY_IDENTIFIER)) {
 						if (value.matches("((-|\\+)?[0-9]+(\\.[0-9]+)?)+")) {
 							ConfigurationManager.getConfigInstance().setProperty(key, Long.valueOf(value));
-//							System.out.println(key+"="+value);
+
 						} else if ("true".equals(value) || "false".equals(value)) {
 							ConfigurationManager.getConfigInstance().setProperty(key, Boolean.valueOf(value));
-//							System.out.println(key+"="+value);
+
 						} else {
 							ConfigurationManager.getConfigInstance().setProperty(key, value);
-//							System.out.println(key+"="+value);
+
 						}
 					} else if (key.contains(THREAD_POOL_IDENTIFIER)) {
 						if (value.matches("((-|\\+)?[0-9]+(\\.[0-9]+)?)+")) {
 							ConfigurationManager.getConfigInstance().setProperty(key, Long.valueOf(value));
-//							System.out.println(key+"="+value);
+
 						} else if ("true".equals(value) || "false".equals(value)) {
 							ConfigurationManager.getConfigInstance().setProperty(key, Boolean.valueOf(value));
-//							System.out.println(key+"="+value);
+
 						} else {
 							ConfigurationManager.getConfigInstance().setProperty(key, value);
-//							System.out.println(key+"="+value);
+
 						}
 					} else if (key.contains(COLLAPSER)) {
 						if (value.matches("((-|\\+)?[0-9]+(\\.[0-9]+)?)+")) {
 							ConfigurationManager.getConfigInstance().setProperty(key, Long.valueOf(value));
-//							System.out.println(key+"="+value);
+
 						} else if ("true".equals(value) || "false".equals(value)) {
 							ConfigurationManager.getConfigInstance().setProperty(key, Boolean.valueOf(value));
-//							System.out.println(key+"="+value);
+
 						} else {
 							ConfigurationManager.getConfigInstance().setProperty(key, value);
-//							System.out.println(key+"="+value);
+
 						}
 					}
 				}
