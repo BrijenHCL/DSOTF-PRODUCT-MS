@@ -13,7 +13,6 @@ import static com.ulta.product.constant.ProductConstants.VIEW_PRODUCT_BYCATEGORY
 import static com.ulta.product.constant.ProductConstants.VIEW_PRODUCT_BYPRODUCTKEY_URI;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,10 +65,10 @@ public class ProductController {
 				throw new ProductException("Product not found.");
 			}
 
-		} catch (ProductException | InterruptedException | ExecutionException  ex) {
+		} catch (Exception ex) {
 			log.error("exception during fetching the product detail-" + ex.getMessage());
 			throw new ProductException(ex.getMessage());
-		} 
+		}
 		log.info("getProductByKey method end");
 		return ResponseEntity.ok().body(product);
 	}
@@ -94,7 +93,7 @@ public class ProductController {
 				log.info("getting product details as null");
 				throw new ProductException("Product not found.");
 			}
-		} catch (ProductException | InterruptedException | ExecutionException  ex) {
+		} catch (Exception ex) {
 			log.error("exception during fetching the product detail-" + ex.getMessage());
 			throw new ProductException(ex.getMessage());
 		}
@@ -124,10 +123,10 @@ public class ProductController {
 				throw new ProductException("productwithcategory not found.");
 			}
 
-		} catch (ProductException | InterruptedException | ExecutionException  ex) {
+		} catch (Exception ex) {
 			log.error("exception during fetching the productwithcategory detail-" + ex.getMessage());
 			throw new ProductException(ex.getMessage());
-		} 
+		}
 		log.info("getProductByCategory method end");
 		return ResponseEntity.ok().body(productswithcategory);
 	}
@@ -151,7 +150,7 @@ public class ProductController {
 				log.info("getting categories details as null");
 				throw new ProductException("Product not found.");
 			}
-		} catch (ProductException | InterruptedException | ExecutionException  ex) {
+		} catch (Exception ex) {
 			log.error("exception during fetching the categories detail-" + ex.getMessage());
 			throw new ProductException(ex.getMessage());
 		}
