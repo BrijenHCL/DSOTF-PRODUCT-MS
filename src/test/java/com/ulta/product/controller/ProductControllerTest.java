@@ -81,7 +81,7 @@ public class ProductControllerTest {
 	}
 
 	@Test()
-	public void testgetProducts() {
+	public void testgetProducts() throws ProductException, InterruptedException, ExecutionException {
 
 		CompletableFuture<PagedQueryResult<ProductProjection>> products = new CompletableFuture<PagedQueryResult<ProductProjection>>();
 		ProductProjection productProjection = Mockito.mock(ProductProjection.class);
@@ -89,17 +89,17 @@ public class ProductControllerTest {
 		PagedQueryResult<ProductProjection> value = Mockito.mock(PagedQueryResult.class);
 		value.getResults().add(productProjection);
 		products.complete(value);
-		when(productService.getProducts()).thenReturn(products);
-		ResponseEntity<CompletableFuture<PagedQueryResult<ProductProjection>>> result = productController.getProducts();
+		when(productService.getProducts()).thenReturn(products.get());
+		ResponseEntity<PagedQueryResult<ProductProjection>> result = productController.getProducts();
 		assertEquals(HttpStatus.OK, result.getStatusCode());
 	}
 
 	@Test(expected = ProductException.class)
-	public void testgetProductsExceptionCase() {
+	public void testgetProductsExceptionCase() throws ProductException, InterruptedException, ExecutionException {
 
 		CompletableFuture<PagedQueryResult<ProductProjection>> products = new CompletableFuture<PagedQueryResult<ProductProjection>>();
 		products.complete(null);
-		when(productService.getProducts()).thenReturn(products);
+		when(productService.getProducts()).thenReturn(products.get());
 		productController.getProducts();
 	}
 
@@ -113,8 +113,8 @@ public class ProductControllerTest {
 		value.getResults().add(productProjection);
 		products.complete(value);
 		String categorykey = "Makeup";
-		when(productService.findProductsWithCategory(categorykey)).thenReturn(products);
-		ResponseEntity<CompletableFuture<PagedQueryResult<ProductProjection>>> result = productController
+		when(productService.findProductsWithCategory(categorykey)).thenReturn(products.get());
+		ResponseEntity<PagedQueryResult<ProductProjection>> result = productController
 				.getProductByCategory(categorykey);
 		assertEquals(HttpStatus.OK, result.getStatusCode());
 	}
@@ -129,7 +129,7 @@ public class ProductControllerTest {
 		value.getResults().add(productProjection);
 		products.complete(null);
 		String categorykey = "Makeup";
-		when(productService.findProductsWithCategory(categorykey)).thenReturn(products);
+		when(productService.findProductsWithCategory(categorykey)).thenReturn(products.get());
 		productController.getProductByCategory(categorykey);
 	}
 

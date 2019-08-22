@@ -49,7 +49,7 @@ public class ProductServiceImpl implements ProductService {
 	 */
 	@Override
 	@HystrixCommand(fallbackMethod = "getProductByKeyFallback", ignoreExceptions = {
-			ProductException.class }, commandKey = "PRODUCTBYKEYCommand", threadPoolKey = "PRODUCTBYKEYThreadPool")
+			ProductException.class }, commandKey = "PRODUCTBYKEYCommand", threadPoolKey = "PRODUCTThreadPool")
 	public Product getProductByKey(String key) throws ProductException, InterruptedException, ExecutionException {
 		log.info("getProductByKey method start");
 		final ProductByKeyGet request = ProductByKeyGet.of(key);
@@ -71,7 +71,10 @@ public class ProductServiceImpl implements ProductService {
 	 */
 
 	@Override
-	public CompletableFuture<PagedQueryResult<ProductProjection>> getProducts() throws ProductException {
+	@HystrixCommand(fallbackMethod = "getProductFallback", ignoreExceptions = {
+			ProductException.class }, commandKey = "PRODUCTCommand", threadPoolKey = "PRODUCTThreadPool")
+	public PagedQueryResult<ProductProjection> getProducts()
+			throws ProductException, InterruptedException, ExecutionException {
 		log.info("getProducts method start");
 
 		final ProductProjectionQuery pro = ProductProjectionQuery.ofCurrent();
@@ -84,28 +87,34 @@ public class ProductServiceImpl implements ProductService {
 		}
 
 		log.info("getProducts method end");
-		return returnProduct;
+		return returnProduct.get();
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.ulta.product.service.ProductService#findProductsWithCategory(String
+	 * @see
+	 * com.ulta.product.service.ProductService#findProductsWithCategory(String
 	 * categorykey)
 	 */
 
 	@Override
-	public CompletableFuture<PagedQueryResult<ProductProjection>> findProductsWithCategory(String categorykey)
+	@HystrixCommand(fallbackMethod = "getProductByCategoryFallback", ignoreExceptions = {
+			ProductException.class }, commandKey = "PRODUCTBYCATEGORYCommand", threadPoolKey = "PRODUCTThreadPool")
+	public PagedQueryResult<ProductProjection> findProductsWithCategory(String categorykey)
 			throws InterruptedException, ExecutionException, ProductException {
 		log.info("findProductsWithCategory method start");
 
 		CompletionStage<Category> category = client.execute(CategoryByKeyGet.of(categorykey));
 		CompletableFuture<PagedQueryResult<ProductProjection>> returnProductwithcategory = null;
 		ProductProjectionQuery exists = null;
-		if (null != category.toCompletableFuture()) {
+		if (null != category.toCompletableFuture().get()) {
 			Category returnCat = category.toCompletableFuture().get();
 			exists = ProductProjectionQuery.ofCurrent()
 					.withPredicates(m -> m.categories().isIn(Arrays.asList(returnCat)));
+		}
+		else{
+			throw new ProductException("Product With Category is empty");
 		}
 		CompletionStage<PagedQueryResult<ProductProjection>> productsWithCategory = client.execute(exists);
 
@@ -116,7 +125,7 @@ public class ProductServiceImpl implements ProductService {
 		}
 
 		log.info("findProductsWithCategory method end");
-		return returnProductwithcategory;
+		return returnProductwithcategory.get();
 	}
 
 	/*
@@ -145,12 +154,40 @@ public class ProductServiceImpl implements ProductService {
 	 * @return
 	 * @throws ProductException
 	 */
-	public Product getProductByKeyFallback(String key) throws ProductException {
+	public Product getProductByKeyFallback(String key)
+			throws ProductException, InterruptedException, ExecutionException {
 		log.error("Critical -  CommerceTool UnAvailability error");
 		throw new ProductException(key);
 
 	}
 
+	/**
+	 * 
+	 * @return
+	 * @throws ProductException
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public PagedQueryResult<ProductProjection> getProductFallback()
+			throws ProductException, InterruptedException, ExecutionException {
+		log.error("Critical -  CommerceTool UnAvailability error");
+		throw new ProductException("");
+
+	}
+
+	
+	/**
+	 * @param categorykey
+	 * @return
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 * @throws ProductException
+	 */
+	public PagedQueryResult<ProductProjection> getProductByCategoryFallback(String categorykey)
+			throws InterruptedException, ExecutionException, ProductException {
+		log.error("Critical -  CommerceTool UnAvailability error");
+		throw new ProductException(categorykey);
+	}
 	/**
 	 * 
 	 * @param client

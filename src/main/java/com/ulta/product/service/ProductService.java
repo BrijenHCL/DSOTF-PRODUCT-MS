@@ -21,9 +21,9 @@ public interface ProductService {
 
 	public Product getProductByKey(String key) throws ProductException, InterruptedException, ExecutionException;
 
-	public CompletableFuture<PagedQueryResult<ProductProjection>> getProducts() throws ProductException;
+	public PagedQueryResult<ProductProjection> getProducts() throws ProductException,InterruptedException, ExecutionException;
 
-	public CompletableFuture<PagedQueryResult<ProductProjection>> findProductsWithCategory(String ctgId)
+	public PagedQueryResult<ProductProjection> findProductsWithCategory(String ctgId)
 			throws InterruptedException, ExecutionException, ProductException;
 
 	public CompletableFuture<PagedQueryResult<Category>> getCategories() throws ProductException;

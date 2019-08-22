@@ -78,17 +78,19 @@ public class ProductController {
 	 * 
 	 * @return
 	 * @throws ProductException
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
 	 */
 
 	@RequestMapping(value = VIEW_PRODUCT_ALL, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<CompletableFuture<PagedQueryResult<ProductProjection>>> getProducts()
-			throws ProductException {
+	public ResponseEntity<PagedQueryResult<ProductProjection>> getProducts()
+			throws ProductException, InterruptedException, ExecutionException {
 
 		log.info("getProducts method start");
-		CompletableFuture<PagedQueryResult<ProductProjection>> products = ProductService.getProducts();
+		PagedQueryResult<ProductProjection> products = ProductService.getProducts();
 
 		try {
-			if (null != products.get()) {
+			if (null != products.getResults()) {
 				log.info("get the product details successfully.");
 			} else {
 				log.info("getting product details as null");
@@ -109,15 +111,15 @@ public class ProductController {
 	 * @throws ProductException
 	 */
 	@RequestMapping(value = VIEW_PRODUCT_BYCATEGORYID_URI, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<CompletableFuture<PagedQueryResult<ProductProjection>>> getProductByCategory(
+	public ResponseEntity<PagedQueryResult<ProductProjection>> getProductByCategory(
 			@PathVariable("categorykey") String categorykey) throws ProductException {
 
 		log.info("getProductByCategory method start");
 
-		CompletableFuture<PagedQueryResult<ProductProjection>> productswithcategory;
+		PagedQueryResult<ProductProjection> productswithcategory;
 		try {
 			productswithcategory = ProductService.findProductsWithCategory(categorykey);
-			if (null != productswithcategory.get()) {
+			if (null != productswithcategory.getResults()) {
 				log.info("get the productwithcategory details successfully.");
 			} else {
 				log.info("getting productwithcategory details as null");
