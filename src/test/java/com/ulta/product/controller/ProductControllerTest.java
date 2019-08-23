@@ -136,22 +136,21 @@ public class ProductControllerTest {
 	@Test()
 	public void testgetCategory() throws InterruptedException, ExecutionException {
 
-		CompletableFuture<PagedQueryResult<Category>> products = new CompletableFuture<PagedQueryResult<Category>>();
+		
 		Category category = Mockito.mock(Category.class);
 		PagedQueryResult<Category> value = Mockito.mock(PagedQueryResult.class);
 		value.getResults().add(category);
-		products.complete(value);
-		when(productService.getCategories()).thenReturn(products);
-		ResponseEntity<CompletableFuture<PagedQueryResult<Category>>> result = productController.getCategories();
+		when(productService.getCategories()).thenReturn(value);
+		ResponseEntity<PagedQueryResult<Category>> result = productController.getCategories();
 		assertEquals(HttpStatus.OK, result.getStatusCode());
 	}
 
 	@Test(expected = ProductException.class)
 	public void testgetCategoryExceptionWhenDataisNotFound() throws InterruptedException, ExecutionException {
 
-		CompletableFuture<PagedQueryResult<Category>> products = new CompletableFuture<PagedQueryResult<Category>>();
-		products.complete(null);
-		when(productService.getCategories()).thenReturn(products);
+		PagedQueryResult<Category> category = Mockito.mock(PagedQueryResult.class);
+		category=null;
+		when(productService.getCategories()).thenReturn(category);
 		productController.getCategories();
 	}
 

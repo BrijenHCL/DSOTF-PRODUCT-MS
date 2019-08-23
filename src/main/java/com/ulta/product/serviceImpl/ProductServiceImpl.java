@@ -134,7 +134,9 @@ public class ProductServiceImpl implements ProductService {
 	 * @see com.ulta.product.service.ProductService#getCategories()
 	 */
 	@Override
-	public CompletableFuture<PagedQueryResult<Category>> getCategories() throws ProductException {
+	@HystrixCommand(fallbackMethod = "getCategoriesFallback", ignoreExceptions = {
+			ProductException.class }, commandKey = "GETCATEGORIESCommand", threadPoolKey = "PRODUCTThreadPool")
+	public PagedQueryResult<Category> getCategories() throws ProductException, InterruptedException, ExecutionException {
 		log.info("getCategories method start");
 		CategoryQuery catQuery = CategoryQuery.of();
 		CompletionStage<PagedQueryResult<Category>> result = client.execute(catQuery);
@@ -145,7 +147,7 @@ public class ProductServiceImpl implements ProductService {
 			throw new ProductException("Categories is empty");
 		}
 		log.info("getCategories method end");
-		return returnCategories;
+		return returnCategories.get();
 	}
 
 	/**
@@ -188,6 +190,19 @@ public class ProductServiceImpl implements ProductService {
 		log.error("Critical -  CommerceTool UnAvailability error");
 		throw new ProductException(categorykey);
 	}
+	
+	/**
+	 * 
+	 * @return
+	 * @throws ProductException
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public PagedQueryResult<Category> getCategoriesFallback() throws ProductException, InterruptedException, ExecutionException {
+		log.error("Critical -  CommerceTool UnAvailability error");
+		throw new ProductException("");
+	}
+	
 	/**
 	 * 
 	 * @param client

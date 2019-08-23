@@ -26,5 +26,5 @@ public interface ProductService {
 	public PagedQueryResult<ProductProjection> findProductsWithCategory(String ctgId)
 			throws InterruptedException, ExecutionException, ProductException;
 
-	public CompletableFuture<PagedQueryResult<Category>> getCategories() throws ProductException;
+	public PagedQueryResult<Category> getCategories() throws ProductException, InterruptedException, ExecutionException;
 }

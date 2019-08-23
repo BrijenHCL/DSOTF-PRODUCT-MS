@@ -107,13 +107,13 @@ public class ProductServiceImplTest {
 		productServiceImpl.findProductsWithCategory(categorykey);
 	}
 
-	@Test
+	@Test(expected=NullPointerException.class)
 	public void testgetCategories() throws InterruptedException, ExecutionException {
 		CompletionStage<PagedQueryResult<Category>> category = (CompletionStage<PagedQueryResult<Category>>) Mockito
 				.mock(CompletionStage.class);
 		CategoryQuery catQuery = CategoryQuery.of();
 		when(client.execute(catQuery)).thenReturn(category);
-		CompletableFuture<PagedQueryResult<Category>> result = productServiceImpl.getCategories();
+		PagedQueryResult<Category> result = productServiceImpl.getCategories();
 		assertEquals(null, result);
 	}
 

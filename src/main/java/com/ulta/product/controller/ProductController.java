@@ -40,7 +40,7 @@ public class ProductController {
 	static Logger log = LoggerFactory.getLogger(ProductController.class);
 
 	@Autowired
-	ProductService ProductService;
+	ProductService productService;
 
 	/**
 	 * 
@@ -55,7 +55,7 @@ public class ProductController {
 			throws ProductException, InterruptedException, ExecutionException {
 
 		log.info("getProductByKey method start");
-		Product product = ProductService.getProductByKey(productKey);
+		Product product = productService.getProductByKey(productKey);
 
 		try {
 
@@ -87,7 +87,7 @@ public class ProductController {
 			throws ProductException, InterruptedException, ExecutionException {
 
 		log.info("getProducts method start");
-		PagedQueryResult<ProductProjection> products = ProductService.getProducts();
+		PagedQueryResult<ProductProjection> products = productService.getProducts();
 
 		try {
 			if (null != products.getResults()) {
@@ -118,7 +118,7 @@ public class ProductController {
 
 		PagedQueryResult<ProductProjection> productswithcategory;
 		try {
-			productswithcategory = ProductService.findProductsWithCategory(categorykey);
+			productswithcategory = productService.findProductsWithCategory(categorykey);
 			if (null != productswithcategory.getResults()) {
 				log.info("get the productwithcategory details successfully.");
 			} else {
@@ -138,16 +138,18 @@ public class ProductController {
 	 * 
 	 * @return
 	 * @throws ProductException
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
 	 */
 	@RequestMapping(value = VIEW_CATEGOTY_ALL, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<CompletableFuture<PagedQueryResult<Category>>> getCategories() throws ProductException {
+	public ResponseEntity<PagedQueryResult<Category>> getCategories() throws ProductException, InterruptedException, ExecutionException {
 
 		log.info("getCategories method start");
-		CompletableFuture<PagedQueryResult<Category>> categories = ProductService.getCategories();
+		PagedQueryResult<Category> categories = productService.getCategories();
 
 		try {
 
-			if (null != categories.get()) {
+			if (null != categories) {
 				log.info("get the categories details successfully.");
 			} else {
 				log.info("getting categories details as null");
@@ -165,7 +167,7 @@ public class ProductController {
 	 * setter method for product service
 	 */
 	public void setProductService(ProductService productService) {
-		this.ProductService = productService;
+		this.productService = productService;
 	}
 
 }
