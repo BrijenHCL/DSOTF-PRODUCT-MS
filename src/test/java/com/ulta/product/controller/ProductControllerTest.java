@@ -47,22 +47,9 @@ public class ProductControllerTest {
 		productController.setProductService(productService);
 	}
 
-	@Test(expected = ProductException.class)
-	public void testgetProductBykeyWhenProductGetisNull()
-			throws ProductException, InterruptedException, ExecutionException {
-
-		// CompletableFuture<Product> products = new CompletableFuture<Product>();
-		Product value = null;
-
-		String key = "Liquid-exception";
-		when(productService.getProductByKey(key)).thenReturn(value);
-		productController.getProductByKey(key);
-	}
-
-	@Test()
+	@Test
 	public void testgetProductBykey() throws ProductException, InterruptedException, ExecutionException {
 
-		CompletableFuture<Product> products = new CompletableFuture<Product>();
 		Product value = Mockito.mock(Product.class);
 		String key = "Liquid";
 		when(productService.getProductByKey(key)).thenReturn(value);
@@ -70,17 +57,7 @@ public class ProductControllerTest {
 		assertEquals(HttpStatus.OK, result.getStatusCode());
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test(expected = ProductException.class)
-	public void testgetProductBykeyForExceptionCase1()
-			throws ProductException, InterruptedException, ExecutionException {
-
-		String key = "Liquid";
-		when(productService.getProductByKey(key)).thenThrow(new ProductException("Failure"));
-		productController.getProductByKey(key);
-	}
-
-	@Test()
+	@Test
 	public void testgetProducts() throws ProductException, InterruptedException, ExecutionException {
 
 		CompletableFuture<PagedQueryResult<ProductProjection>> products = new CompletableFuture<PagedQueryResult<ProductProjection>>();
@@ -95,15 +72,16 @@ public class ProductControllerTest {
 	}
 
 	@Test(expected = ProductException.class)
-	public void testgetProductsExceptionCase() throws ProductException, InterruptedException, ExecutionException {
+	public void testgetProductBykeyWhenProductGetisNull()
+			throws ProductException, InterruptedException, ExecutionException {
 
-		CompletableFuture<PagedQueryResult<ProductProjection>> products = new CompletableFuture<PagedQueryResult<ProductProjection>>();
-		products.complete(null);
-		when(productService.getProducts()).thenReturn(products.get());
-		productController.getProducts();
+		Product value = null;
+		String key = "Liquid-exception";
+		when(productService.getProductByKey(key)).thenReturn(value);
+		productController.getProductByKey(key);
 	}
 
-	@Test()
+	@Test
 	public void testgetProductByCategory() throws InterruptedException, ExecutionException {
 
 		CompletableFuture<PagedQueryResult<ProductProjection>> products = new CompletableFuture<PagedQueryResult<ProductProjection>>();
@@ -117,6 +95,36 @@ public class ProductControllerTest {
 		ResponseEntity<PagedQueryResult<ProductProjection>> result = productController
 				.getProductByCategory(categorykey);
 		assertEquals(HttpStatus.OK, result.getStatusCode());
+	}
+
+	@Test
+	public void testgetCategory() throws InterruptedException, ExecutionException {
+
+		Category category = Mockito.mock(Category.class);
+		PagedQueryResult<Category> value = Mockito.mock(PagedQueryResult.class);
+		value.getResults().add(category);
+		when(productService.getCategories()).thenReturn(value);
+		ResponseEntity<PagedQueryResult<Category>> result = productController.getCategories();
+		assertEquals(HttpStatus.OK, result.getStatusCode());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test(expected = ProductException.class)
+	public void testgetProductBykeyForExceptionCase1()
+			throws ProductException, InterruptedException, ExecutionException {
+
+		String key = "Liquid";
+		when(productService.getProductByKey(key)).thenThrow(new ProductException("Failure"));
+		productController.getProductByKey(key);
+	}
+
+	@Test(expected = ProductException.class)
+	public void testgetProductsExceptionCase() throws ProductException, InterruptedException, ExecutionException {
+
+		CompletableFuture<PagedQueryResult<ProductProjection>> products = new CompletableFuture<PagedQueryResult<ProductProjection>>();
+		products.complete(null);
+		when(productService.getProducts()).thenReturn(products.get());
+		productController.getProducts();
 	}
 
 	@Test(expected = ProductException.class)
@@ -133,23 +141,11 @@ public class ProductControllerTest {
 		productController.getProductByCategory(categorykey);
 	}
 
-	@Test()
-	public void testgetCategory() throws InterruptedException, ExecutionException {
-
-		
-		Category category = Mockito.mock(Category.class);
-		PagedQueryResult<Category> value = Mockito.mock(PagedQueryResult.class);
-		value.getResults().add(category);
-		when(productService.getCategories()).thenReturn(value);
-		ResponseEntity<PagedQueryResult<Category>> result = productController.getCategories();
-		assertEquals(HttpStatus.OK, result.getStatusCode());
-	}
-
 	@Test(expected = ProductException.class)
 	public void testgetCategoryExceptionWhenDataisNotFound() throws InterruptedException, ExecutionException {
 
 		PagedQueryResult<Category> category = Mockito.mock(PagedQueryResult.class);
-		category=null;
+		category = null;
 		when(productService.getCategories()).thenReturn(category);
 		productController.getCategories();
 	}

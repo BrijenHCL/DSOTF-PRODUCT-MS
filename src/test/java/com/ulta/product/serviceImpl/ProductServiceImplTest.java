@@ -9,7 +9,6 @@ package com.ulta.product.serviceImpl;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 
@@ -21,6 +20,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.ulta.product.exception.ProductException;
+import com.ulta.product.resources.HystrixCommandPropertyResource;
 
 import io.sphere.sdk.categories.Category;
 import io.sphere.sdk.categories.queries.CategoryByKeyGet;
@@ -38,6 +38,8 @@ public class ProductServiceImplTest {
 
 	@Mock
 	SphereClient client;
+	@Mock
+	HystrixCommandPropertyResource resource;
 
 	@Before
 	public void init() {
@@ -45,9 +47,15 @@ public class ProductServiceImplTest {
 		productServiceImpl.setClient(client);
 	}
 
+	@Test
+	public void testsetHystrixCommandProp() {
+		productServiceImpl.setHystrixCommandProp(resource);
+		assertEquals("success", "success");
+	}
+
 	@Test(expected = NullPointerException.class)
 	public void testGetProductByKey() throws ProductException, InterruptedException, ExecutionException {
-		String key = "Liquid";
+		String key = "facewash";
 		ProductByKeyGet request = ProductByKeyGet.of(key);
 		CompletionStage<Product> value = (CompletionStage<Product>) Mockito.mock(CompletionStage.class);
 		when(client.execute(request)).thenReturn(value);
@@ -64,7 +72,7 @@ public class ProductServiceImplTest {
 		productServiceImpl.getProductByKey(key);
 	}
 
-	@Test(expected=NullPointerException.class)
+	@Test(expected = NullPointerException.class)
 	public void testGetProductsSucessCase() throws ProductException, InterruptedException, ExecutionException {
 		final ProductProjectionQuery pro = ProductProjectionQuery.ofCurrent();
 		CompletionStage<PagedQueryResult<ProductProjection>> value = (CompletionStage<PagedQueryResult<ProductProjection>>) Mockito
@@ -75,14 +83,15 @@ public class ProductServiceImplTest {
 	}
 
 	@Test(expected = ProductException.class)
-	public void testGetProductsWhenProductDataIsNull() throws ProductException, InterruptedException, ExecutionException {
+	public void testGetProductsWhenProductDataIsNull()
+			throws ProductException, InterruptedException, ExecutionException {
 		final ProductProjectionQuery pro = ProductProjectionQuery.ofCurrent();
 		CompletionStage<PagedQueryResult<ProductProjection>> value = null;
 		when(client.execute(pro)).thenReturn(value);
 		productServiceImpl.getProducts();
 	}
 
-	@Test(expected=NullPointerException.class)
+	@Test(expected = NullPointerException.class)
 	public void testFindProductsWithCategory() throws InterruptedException, ExecutionException {
 		CompletionStage<Object> value = (CompletionStage<Object>) Mockito.mock(CompletionStage.class);
 		@SuppressWarnings("unchecked")
@@ -107,7 +116,7 @@ public class ProductServiceImplTest {
 		productServiceImpl.findProductsWithCategory(categorykey);
 	}
 
-	@Test(expected=NullPointerException.class)
+	@Test(expected = NullPointerException.class)
 	public void testgetCategories() throws InterruptedException, ExecutionException {
 		CompletionStage<PagedQueryResult<Category>> category = (CompletionStage<PagedQueryResult<Category>>) Mockito
 				.mock(CompletionStage.class);
@@ -124,4 +133,33 @@ public class ProductServiceImplTest {
 		when(client.execute(catQuery)).thenReturn(category);
 		productServiceImpl.getCategories();
 	}
+
+	@Test(expected = ProductException.class)
+	public void testgetProductByKeyFallback() throws ProductException, InterruptedException, ExecutionException {
+		String key = "Hystrix";
+		Product result = productServiceImpl.getProductByKeyFallback(key);
+		assertEquals(ProductException.class, result);
+
+	}
+
+	@Test(expected = ProductException.class)
+	public void testgetProductFallback() throws ProductException, InterruptedException, ExecutionException {
+		PagedQueryResult<ProductProjection> result = productServiceImpl.getProductFallback();
+		assertEquals(ProductException.class, result);
+
+	}
+
+	@Test(expected = ProductException.class)
+	public void testgetProductByCategoryFallback() throws InterruptedException, ExecutionException, ProductException {
+		String categorykey = "catKey";
+		PagedQueryResult<ProductProjection> result = productServiceImpl.getProductByCategoryFallback(categorykey);
+		assertEquals(ProductException.class, result);
+	}
+
+	@Test(expected = ProductException.class)
+	public void testgetCategoriesFallback() throws ProductException, InterruptedException, ExecutionException {
+		PagedQueryResult<Category> result = productServiceImpl.getCategoriesFallback();
+		assertEquals(ProductException.class, result);
+	}
+
 }
