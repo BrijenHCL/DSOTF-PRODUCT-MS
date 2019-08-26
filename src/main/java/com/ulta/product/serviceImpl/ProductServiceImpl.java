@@ -105,11 +105,11 @@ public class ProductServiceImpl implements ProductService {
 			throws InterruptedException, ExecutionException, ProductException {
 		log.info("findProductsWithCategory method start");
 
-		CompletionStage<Category> category = client.execute(CategoryByKeyGet.of(categorykey));
+		CompletableFuture<Category> category= findCategory(categorykey);
 		CompletableFuture<PagedQueryResult<ProductProjection>> returnProductwithcategory = null;
 		ProductProjectionQuery exists = null;
-		if (null != category.toCompletableFuture().get()) {
-			Category returnCat = category.toCompletableFuture().get();
+		if (null!=category&& null != category.get()) {
+			Category returnCat = category.get();
 			exists = ProductProjectionQuery.ofCurrent()
 					.withPredicates(m -> m.categories().isIn(Arrays.asList(returnCat)));
 		}
@@ -126,6 +126,12 @@ public class ProductServiceImpl implements ProductService {
 
 		log.info("findProductsWithCategory method end");
 		return returnProductwithcategory.get();
+	}
+
+	public CompletableFuture<Category> findCategory(String key) {
+		CompletionStage<Category> category = client.execute(CategoryByKeyGet.of(key));
+		CompletableFuture<Category> catCompletableFuture= category.toCompletableFuture();
+		return catCompletableFuture;
 	}
 
 	/*
