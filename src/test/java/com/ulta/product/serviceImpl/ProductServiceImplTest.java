@@ -99,7 +99,6 @@ public class ProductServiceImplTest {
 		CompletionStage<Category> category = (CompletionStage<Category>) Mockito.mock(CompletionStage.class);
 		String categorykey = "Makeup";
 		when(client.execute(CategoryByKeyGet.of(categorykey))).thenReturn(category);
-		ProductProjectionQuery exists = Mockito.mock(ProductProjectionQuery.class);
 		when(client.execute(null)).thenReturn(value);
 		productServiceImpl.findProductsWithCategory(categorykey);
 	}
@@ -107,30 +106,24 @@ public class ProductServiceImplTest {
 	@Test(expected = NullPointerException.class)
 	public void testFindProductsWithCategoryCase2() throws InterruptedException, ExecutionException {
 		String categorykey = "Makeup";
-		//when(client.execute(CategoryByKeyGet.of(categorykey))).thenReturn(category);
 		CompletionStage<Category> category = (CompletionStage<Category>) Mockito.mock(CompletionStage.class);
 		CompletableFuture<Category> returnValue= new CompletableFuture<Category>();
 		Category category2= Mockito.mock(Category.class);
 		returnValue.complete(category2);
-		ProductProjectionQuery exists = Mockito.mock(ProductProjectionQuery.class);
 		when(client.execute(CategoryByKeyGet.of(categorykey))).thenReturn(category);
 		when(productServiceImpl.findCategory(categorykey)).thenReturn(returnValue);
-		//when(client.execute(null)).thenReturn(value);
 		productServiceImpl.findProductsWithCategory(categorykey);
 	}
 	
 	@Test(expected = ProductException.class)
 	public void testFindProductsWithCategoryCase2Exception() throws InterruptedException, ExecutionException {
 		String categorykey = "Makeup";
-		//when(client.execute(CategoryByKeyGet.of(categorykey))).thenReturn(category);
 		CompletionStage<Category> category = (CompletionStage<Category>) Mockito.mock(CompletionStage.class);
 		CompletableFuture<Category> returnValue= new CompletableFuture<Category>();
 		Category category2= Mockito.mock(Category.class);
 		returnValue.complete(category2);
-		ProductProjectionQuery exists = Mockito.mock(ProductProjectionQuery.class);
 		when(client.execute(CategoryByKeyGet.of(categorykey))).thenReturn(category);
 		when(productServiceImpl.findCategory(categorykey)).thenReturn(null);
-		//when(client.execute(null)).thenReturn(value);
 		productServiceImpl.findProductsWithCategory(categorykey);
 	}
 

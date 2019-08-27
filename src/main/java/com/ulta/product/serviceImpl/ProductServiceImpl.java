@@ -32,8 +32,13 @@ import io.sphere.sdk.products.queries.ProductByKeyGet;
 import io.sphere.sdk.products.queries.ProductProjectionQuery;
 import io.sphere.sdk.queries.PagedQueryResult;
 
+/**
+ * implementation class for ProductService
+ *
+ */
 @Service
 public class ProductServiceImpl implements ProductService {
+
 	static Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
 	@Autowired
 	SphereClient client;
@@ -42,34 +47,46 @@ public class ProductServiceImpl implements ProductService {
 	@Autowired
 	Environment env;
 
-	/*
-	 * (non-Javadoc)
+	/**
 	 * 
-	 * @see com.ulta.product.service.ProductService#getProductByKey(String key)
+	 * This method returns the product details on the basis of the provided
+	 * product key
+	 * 
+	 * @param productkey
+	 * @return Product
+	 * @throws ProductException
 	 */
 	@Override
 	@HystrixCommand(fallbackMethod = "getProductByKeyFallback", ignoreExceptions = {
 			ProductException.class }, commandKey = "PRODUCTBYKEYCommand", threadPoolKey = "PRODUCTThreadPool")
 	public Product getProductByKey(String key) throws ProductException, InterruptedException, ExecutionException {
 		log.info("getProductByKey method start");
+		// create ProductByKeyGet get request object with key
 		final ProductByKeyGet request = ProductByKeyGet.of(key);
+		// get the response from CT
 		CompletionStage<Product> pro = client.execute(request);
 		CompletableFuture<Product> returnProduct = null;
+		// check for response is null then convert to completable future else
+		// throw exception
 		if (null != pro) {
 			returnProduct = pro.toCompletableFuture();
 		} else {
+			// throw new exception as no data is found
 			throw new ProductException("Product Data is empty");
 		}
 		log.info("getProductByKey method end");
+		// return the response
 		return returnProduct.get();
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
 	 * 
-	 * @see com.ulta.product.service.ProductService#getProducts()
+	 * This method returns all products
+	 * 
+	 * @param productkey
+	 * @return Product
+	 * @throws ProductException
 	 */
-
 	@Override
 	@HystrixCommand(fallbackMethod = "getProductFallback", ignoreExceptions = {
 			ProductException.class }, commandKey = "PRODUCTCommand", threadPoolKey = "PRODUCTThreadPool")
@@ -90,12 +107,14 @@ public class ProductServiceImpl implements ProductService {
 		return returnProduct.get();
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
 	 * 
-	 * @see
-	 * com.ulta.product.service.ProductService#findProductsWithCategory(String
-	 * categorykey)
+	 * This method returns the product details on the basis of the provided
+	 * product category
+	 * 
+	 * @param categorykey
+	 * @return PagedQueryResult<ProductProjection>
+	 * @throws ProductException
 	 */
 
 	@Override
@@ -104,59 +123,75 @@ public class ProductServiceImpl implements ProductService {
 	public PagedQueryResult<ProductProjection> findProductsWithCategory(String categorykey)
 			throws InterruptedException, ExecutionException, ProductException {
 		log.info("findProductsWithCategory method start");
-
-		CompletableFuture<Category> category= findCategory(categorykey);
+		// find the Category from the category key
+		CompletableFuture<Category> category = findCategory(categorykey);
 		CompletableFuture<PagedQueryResult<ProductProjection>> returnProductwithcategory = null;
 		ProductProjectionQuery exists = null;
-		if (null!=category&& null != category.get()) {
+		// check if category is not null then create ProjectProjectionQuery
+		if (null != category && null != category.get()) {
 			Category returnCat = category.get();
 			exists = ProductProjectionQuery.ofCurrent()
 					.withPredicates(m -> m.categories().isIn(Arrays.asList(returnCat)));
-		}
-		else{
+		} else {
 			throw new ProductException("Product With Category is empty");
 		}
+		// get the response from CT
 		CompletionStage<PagedQueryResult<ProductProjection>> productsWithCategory = client.execute(exists);
 
+		// if product response is not null then get the actual result
 		if (null != productsWithCategory) {
 			returnProductwithcategory = productsWithCategory.toCompletableFuture();
 		} else {
 			throw new ProductException("Product With Category is empty");
 		}
 
+		// return the response
 		log.info("findProductsWithCategory method end");
 		return returnProductwithcategory.get();
 	}
 
+	/**
+	 * This method returns the Category from the given category key
+	 * 
+	 * @param key
+	 * @return CompletableFuture<Category>
+	 */
 	public CompletableFuture<Category> findCategory(String key) {
 		CompletionStage<Category> category = client.execute(CategoryByKeyGet.of(key));
-		CompletableFuture<Category> catCompletableFuture= category.toCompletableFuture();
+		CompletableFuture<Category> catCompletableFuture = category.toCompletableFuture();
 		return catCompletableFuture;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * This method returns all the Category
 	 * 
-	 * @see com.ulta.product.service.ProductService#getCategories()
+	 * @return PagedQueryResult<Category> throws ProductException
 	 */
 	@Override
 	@HystrixCommand(fallbackMethod = "getCategoriesFallback", ignoreExceptions = {
 			ProductException.class }, commandKey = "GETCATEGORIESCommand", threadPoolKey = "PRODUCTThreadPool")
-	public PagedQueryResult<Category> getCategories() throws ProductException, InterruptedException, ExecutionException {
+	public PagedQueryResult<Category> getCategories()
+			throws ProductException, InterruptedException, ExecutionException {
 		log.info("getCategories method start");
+		// Create Category query object
 		CategoryQuery catQuery = CategoryQuery.of();
+		// get the response from CT
 		CompletionStage<PagedQueryResult<Category>> result = client.execute(catQuery);
 		CompletableFuture<PagedQueryResult<Category>> returnCategories = null;
+		// check if response is not null
 		if (null != result) {
 			returnCategories = result.toCompletableFuture();
 		} else {
 			throw new ProductException("Categories is empty");
 		}
+
+		// return the response
 		log.info("getCategories method end");
 		return returnCategories.get();
 	}
 
 	/**
+	 * Fallback method for getProductByKey
 	 * 
 	 * @param key
 	 * @return
@@ -171,7 +206,8 @@ public class ProductServiceImpl implements ProductService {
 
 	/**
 	 * 
-	 * @return
+	 * Fallback method for getProduct
+	 * 
 	 * @throws ProductException
 	 * @throws InterruptedException
 	 * @throws ExecutionException
@@ -183,8 +219,9 @@ public class ProductServiceImpl implements ProductService {
 
 	}
 
-	
 	/**
+	 * Fallback method for getProductByCategory
+	 * 
 	 * @param categorykey
 	 * @return
 	 * @throws InterruptedException
@@ -196,20 +233,23 @@ public class ProductServiceImpl implements ProductService {
 		log.error("Critical -  CommerceTool UnAvailability error");
 		throw new ProductException(categorykey);
 	}
-	
+
 	/**
+	 * Fallback method for getCategories
 	 * 
 	 * @return
 	 * @throws ProductException
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
-	public PagedQueryResult<Category> getCategoriesFallback() throws ProductException, InterruptedException, ExecutionException {
+	public PagedQueryResult<Category> getCategoriesFallback()
+			throws ProductException, InterruptedException, ExecutionException {
 		log.error("Critical -  CommerceTool UnAvailability error");
 		throw new ProductException("");
 	}
-	
+
 	/**
+	 * Only for Junit
 	 * 
 	 * @param client
 	 */
@@ -219,6 +259,8 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	/**
+	 * Only for Junit
+	 * 
 	 * @param hystrixCommandProp the hystrixCommandProp to set
 	 */
 	public void setHystrixCommandProp(HystrixCommandPropertyResource hystrixCommandProp) {
