@@ -1,9 +1,5 @@
-/*
- * Copyright (C) 2019 ULTA
- * http://www.ulta.com
- * BrijendraK@ulta.com
- * All rights reserved
- */
+
+ 
 package com.ulta.product.serviceImpl;
 
 import static org.junit.Assert.assertEquals;
@@ -20,7 +16,12 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.ulta.product.exception.ProductException;
+import com.ulta.product.exception.UltaException;
+import com.ulta.product.response.CategoryBean;
+import com.ulta.product.response.CategoryResponse;
+import com.ulta.product.response.ProductBean;
+import com.ulta.product.response.ProductResponse;
+import com.ulta.product.transformation.ProductResponseTransformation;
 
 import io.sphere.sdk.categories.Category;
 import io.sphere.sdk.categories.queries.CategoryByKeyGet;
@@ -39,63 +40,133 @@ public class ProductServiceImplTest {
 	@Mock
 	SphereClient client;
 
+	@Mock
+	ProductResponseTransformation responseTransformation;
+	
 	@Before
 	public void init() {
 		MockitoAnnotations.initMocks(this);
 		productServiceImpl.setClient(client);
+		productServiceImpl.setResponseTransformation(responseTransformation);
 	}
 
-	@Test(expected = NullPointerException.class)
-	public void testGetProductByKey() throws ProductException, InterruptedException, ExecutionException {
-		String key = "Liquid";
+
+	@Test()
+	public void testGetProductByKey() throws UltaException, InterruptedException, ExecutionException {
+		String key = "facewash";
 		ProductByKeyGet request = ProductByKeyGet.of(key);
 		CompletionStage<Product> value = (CompletionStage<Product>) Mockito.mock(CompletionStage.class);
 		when(client.execute(request)).thenReturn(value);
-		Product returnProduct = productServiceImpl.getProductByKey(key);
+		ProductResponse productResponse = new  ProductResponse();
+		ProductBean productBean = new ProductBean();
+		productBean.setId("prod_001");
+		productResponse.getProduct().add(productBean);
+		when(responseTransformation.getProductByKeyTransformation(null)).thenReturn(productResponse );
+		ProductResponse returnProduct = productServiceImpl.getProductByKey(key);
+		assertEquals("prod_001", returnProduct.getProduct().get(0).getId());
+	}
+	
+	@Test()
+	public void testGetProductByKeyWhenNull() throws UltaException, InterruptedException, ExecutionException {
+		String key = "facewash";
+		ProductByKeyGet request = ProductByKeyGet.of(key);
+		//CompletionStage<Product> value = (CompletionStage<Product>) Mockito.mock(CompletionStage.class);
+		when(client.execute(request)).thenReturn(null);
+		ProductResponse productResponse = new  ProductResponse();
+		ProductBean productBean = new ProductBean();
+		productBean.setId("prod_001");
+		productResponse.getProduct().add(productBean);
+		when(responseTransformation.getProductByKeyTransformation(null)).thenReturn(productResponse );
+		ProductResponse returnProduct = productServiceImpl.getProductByKey(key);
 		assertEquals(null, returnProduct);
 	}
 
-	@Test(expected = ProductException.class)
-	public void testGetProductByKeyForExceptionWhenProductIsNull()
-			throws ProductException, InterruptedException, ExecutionException {
-		String key = "facewash";
-		ProductByKeyGet request = ProductByKeyGet.of(key);
-		when(client.execute(request)).thenReturn(null);
-		productServiceImpl.getProductByKey(key);
-	}
+	
 
-	@Test
-	public void testGetProductsSucessCase() {
+	@Test()
+	public void testGetProductsSucessCase() throws UltaException {
 		final ProductProjectionQuery pro = ProductProjectionQuery.ofCurrent();
 		CompletionStage<PagedQueryResult<ProductProjection>> value = (CompletionStage<PagedQueryResult<ProductProjection>>) Mockito
 				.mock(CompletionStage.class);
+		ProductResponse productResponse = new  ProductResponse();
+		ProductBean productBean = new ProductBean();
+		productBean.setId("prod_001");
 		when(client.execute(pro)).thenReturn(value);
-		CompletableFuture<PagedQueryResult<ProductProjection>> result = productServiceImpl.getProducts();
-		assertEquals(null, result);
+		when(responseTransformation.getProductTransformation(null)).thenReturn(productResponse );
+		ProductResponse result = productServiceImpl.getProducts();
+		assertEquals(0, result.getProduct().size());
 	}
 
-	@Test(expected = ProductException.class)
-	public void testGetProductsWhenProductDataIsNull() {
+	@Test()
+	public void testGetProductsWhenProductDataIsNull()
+			throws UltaException {
 		final ProductProjectionQuery pro = ProductProjectionQuery.ofCurrent();
 		CompletionStage<PagedQueryResult<ProductProjection>> value = null;
 		when(client.execute(pro)).thenReturn(value);
-		productServiceImpl.getProducts();
+		ProductResponse result=productServiceImpl.getProducts();
+		
 	}
 
-	@Test
-	public void testFindProductsWithCategory() throws InterruptedException, ExecutionException {
+	
+	@Test(expected=UltaException.class)
+	public void testFindProductsWithCategoryNullExceptionCase() throws InterruptedException, ExecutionException, UltaException {
+		CompletionStage<Object> value = (CompletionStage<Object>) Mockito.mock(CompletionStage.class);
+		@SuppressWarnings("unchecked")
+		//CompletionStage<Category> category = (CompletionStage<Category>) Mockito.mock(CompletionStage.class);
+		String categorykey = "Makeup";
+		CompletableFuture<Category> category = new CompletableFuture<Category>();
+		Category category2 = Mockito.mock(Category.class);
+		category.complete(category2);
+		when(client.execute(CategoryByKeyGet.of(categorykey))).thenReturn(category);
+		when(productServiceImpl.findCategory(categorykey)).thenReturn(category);
+		when(client.execute(null)).thenReturn(value);
+		productServiceImpl.findProductsWithCategory(categorykey);
+	}
+	
+	@Test()
+	public void testFindProductsWithCategory() throws InterruptedException, ExecutionException, UltaException {
 		CompletionStage<Object> value = (CompletionStage<Object>) Mockito.mock(CompletionStage.class);
 		@SuppressWarnings("unchecked")
 		CompletionStage<Category> category = (CompletionStage<Category>) Mockito.mock(CompletionStage.class);
 		String categorykey = "Makeup";
+		/*CompletableFuture<Category> category = new CompletableFuture<Category>();
+		Category category2 = Mockito.mock(Category.class);
+		category.complete(category2);*/
 		when(client.execute(CategoryByKeyGet.of(categorykey))).thenReturn(category);
-		ProductProjectionQuery exists = Mockito.mock(ProductProjectionQuery.class);
+		//when(productServiceImpl.findCategory(categorykey)).thenReturn(category);
 		when(client.execute(null)).thenReturn(value);
+		ProductResponse result = productServiceImpl.findProductsWithCategory(categorykey);
+		assertEquals("204", result.getErrorDetails().getErrorCode());
+	}
+	
+	
+	/*
+	@Test(expected = NullPointerException.class)
+	public void testFindProductsWithCategoryCase2() throws InterruptedException, ExecutionException, ProductException {
+		String categorykey = "Makeup";
+		CompletionStage<Category> category = (CompletionStage<Category>) Mockito.mock(CompletionStage.class);
+		CompletableFuture<Category> returnValue= new CompletableFuture<Category>();
+		Category category2= Mockito.mock(Category.class);
+		returnValue.complete(category2);
+		when(client.execute(CategoryByKeyGet.of(categorykey))).thenReturn(category);
+		when(productServiceImpl.findCategory(categorykey)).thenReturn(returnValue);
+		productServiceImpl.findProductsWithCategory(categorykey);
+	}
+	
+	@Test(expected = ProductException.class)
+	public void testFindProductsWithCategoryCase2Exception() throws InterruptedException, ExecutionException, ProductException {
+		String categorykey = "Makeup";
+		CompletionStage<Category> category = (CompletionStage<Category>) Mockito.mock(CompletionStage.class);
+		CompletableFuture<Category> returnValue= new CompletableFuture<Category>();
+		Category category2= Mockito.mock(Category.class);
+		returnValue.complete(category2);
+		when(client.execute(CategoryByKeyGet.of(categorykey))).thenReturn(category);
+		when(productServiceImpl.findCategory(categorykey)).thenReturn(null);
 		productServiceImpl.findProductsWithCategory(categorykey);
 	}
 
 	@Test(expected = ProductException.class)
-	public void testFindProductsWithCategoryExceptionCase() throws InterruptedException, ExecutionException {
+	public void testFindProductsWithCategoryExceptionCase() throws InterruptedException, ExecutionException, ProductException {
 		CompletionStage<PagedQueryResult<ProductProjection>> value = (CompletionStage<PagedQueryResult<ProductProjection>>) Mockito
 				.mock(CompletionStage.class);
 		@SuppressWarnings("unchecked")
@@ -106,19 +177,24 @@ public class ProductServiceImplTest {
 		when(client.execute(exists)).thenReturn(value);
 		productServiceImpl.findProductsWithCategory(categorykey);
 	}
-
-	@Test
-	public void testgetCategories() throws InterruptedException, ExecutionException {
+*/
+	@Test()
+	public void testgetCategories() throws InterruptedException, ExecutionException, UltaException {
 		CompletionStage<PagedQueryResult<Category>> category = (CompletionStage<PagedQueryResult<Category>>) Mockito
 				.mock(CompletionStage.class);
 		CategoryQuery catQuery = CategoryQuery.of();
 		when(client.execute(catQuery)).thenReturn(category);
-		CompletableFuture<PagedQueryResult<Category>> result = productServiceImpl.getCategories();
-		assertEquals(null, result);
+		CategoryResponse categorResponse= new CategoryResponse();
+		CategoryBean catBean = new CategoryBean();
+		catBean.setKey("makeup");
+		categorResponse.getCategoryList().add(catBean );
+		when(responseTransformation.getCategoryTransformation(null)).thenReturn(categorResponse);
+		CategoryResponse result = productServiceImpl.getCategories();
+		assertEquals("makeup", result.getCategoryList().get(0).getKey());
 	}
 
-	@Test(expected = ProductException.class)
-	public void testgetCategoriesForException() throws InterruptedException, ExecutionException {
+	@Test()
+	public void testgetCategoriesForException() throws InterruptedException, ExecutionException, UltaException {
 		CompletionStage<PagedQueryResult<Category>> category = null;
 		CategoryQuery catQuery = CategoryQuery.of();
 		when(client.execute(catQuery)).thenReturn(category);

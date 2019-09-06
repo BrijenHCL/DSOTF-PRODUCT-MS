@@ -32,14 +32,14 @@ public class GlobalExceptionHandler {
 	}
 
 	/**
-	 * Handling the all exceptions of ProductException class.
+	 * Handling the all exceptions of UltaException class.
 	 * 
 	 * @param ex
 	 * @return
 	 */
 
-	@ExceptionHandler(value = ProductException.class)
-	public final ResponseEntity<ErrorDetails> handleException(ProductException ex) {
+	@ExceptionHandler(value = UltaException.class)
+	public final ResponseEntity<ErrorDetails> handleException(UltaException ex) {
 		ErrorDetails errorDetails = new ErrorDetails(new Date(), ex.getMessage(),
 				String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
 		return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);

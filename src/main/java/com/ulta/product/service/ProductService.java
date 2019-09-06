@@ -6,25 +6,26 @@
  */
 package com.ulta.product.service;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import com.ulta.product.exception.ProductException;
+import com.ulta.product.exception.UltaException;
+import com.ulta.product.response.CategoryResponse;
+import com.ulta.product.response.ProductResponse;
 
 import io.sphere.sdk.categories.Category;
-import io.sphere.sdk.products.Product;
 import io.sphere.sdk.products.ProductProjection;
 import io.sphere.sdk.queries.PagedQueryResult;
 
 public interface ProductService {
 
-	public Product getProductByKey(String key) throws ProductException, InterruptedException, ExecutionException;
+	public ProductResponse getProductByKey(String key) throws UltaException;
 
-	public CompletableFuture<PagedQueryResult<ProductProjection>> getProducts() throws ProductException;
+	public ProductResponse getProducts()
+			throws UltaException;
 
-	public CompletableFuture<PagedQueryResult<ProductProjection>> findProductsWithCategory(String ctgId)
-			throws InterruptedException, ExecutionException, ProductException;
+	public ProductResponse findProductsWithCategory(String ctgId)
+			throws UltaException;
 
-	public CompletableFuture<PagedQueryResult<Category>> getCategories() throws ProductException;
+	public CategoryResponse getCategories() throws UltaException;
 }

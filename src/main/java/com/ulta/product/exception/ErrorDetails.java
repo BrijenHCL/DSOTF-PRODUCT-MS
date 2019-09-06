@@ -13,6 +13,10 @@ public class ErrorDetails {
 	private String message;
 	private String errorCode;
 
+	public ErrorDetails() {
+
+	}
+
 	/**
 	 * @param timestamp
 	 * @param message

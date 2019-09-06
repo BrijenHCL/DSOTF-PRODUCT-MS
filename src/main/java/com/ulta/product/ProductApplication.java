@@ -13,15 +13,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
-import org.springframework.context.annotation.PropertySource;
 
 @EnableHystrix
 @EnableHystrixDashboard
 @EnableCircuitBreaker
 @SpringBootApplication
-@PropertySource("classpath:HystrixCommand.properties")
 public class ProductApplication {
 	static Logger log = LoggerFactory.getLogger(ProductApplication.class);
+
 	public static void main(String[] args) {
 		log.info("ProductApplication start");
 		SpringApplication.run(ProductApplication.class, args);

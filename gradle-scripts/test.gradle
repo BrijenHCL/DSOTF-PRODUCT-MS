@@ -1,0 +1,9 @@
+test {
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter', 'junit-vintage'
+    }
+}
+
+configurations {
+    testImplementation.exclude group: 'org.slf4j', module: 'slf4j-simple'
+}
